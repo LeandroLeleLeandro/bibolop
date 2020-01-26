@@ -5,3 +5,8 @@ textarea
 .custom-file-input~.custom-file-label::after {
     content: attr(data-label);
 }
+body
+{
+padding-bottom: 10%;
+overflow-y: auto;
+}
