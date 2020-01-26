@@ -13,7 +13,7 @@
   {
     $countfiles = count($_FILES['photo']['name']);              // Nombres d'images recuperé par l'input files
     $dossier = 'img/upload/';                                   // Chemin ou seront uplaod les images
-    $taille_maxi = 500000;                                      // Tailles max en octet
+    $taille_maxi = 3000000;                                     // Tailles max en octet
     $extensions = array('.png', '.gif', '.jpg', '.jpeg');       // Formats acceptés
 
     // Boucle qui va se repeter autant de fois que le nombre d'image envoyer dans l'input
@@ -108,6 +108,7 @@
       </div>
     </nav>
 
+    <!-- Formulaire -->
     <div class="container mt-5">
       <div class="card">
         <form action="" method="post" enctype="multipart/form-data">
@@ -132,30 +133,30 @@
       </div>   
     </div>
 
-<!-- Pöopup -->
-<div class="modal fade bd-example-modal-lg" id="popupInfos" tabindex="-1" role="dialog" aria-labelledby="popupInfos" aria-hidden="true">
-  <div class="modal-dialog modal-lg" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">Informations :</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-      <?php
-        if(isset($msg))
-        {
-          echo $msg;
-        }
-      ?>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-success" data-dismiss="modal">Compris</button>
+    <!-- Popup -->
+    <div class="modal fade bd-example-modal-lg" id="popupInfos" tabindex="-1" role="dialog" aria-labelledby="popupInfos" aria-hidden="true">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Informations :</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+          <?php
+            if(isset($msg))
+            {
+              echo $msg;
+            }
+          ?>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-success" data-dismiss="modal">Compris</button>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-</div>
 
   </body>
     <!-- Footer -->
