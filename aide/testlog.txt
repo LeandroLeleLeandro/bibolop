@@ -1,0 +1,26 @@
+ // Code effectué a l'appuie du boutton valider.
+    if ($btnValider) {
+
+        // Filtrage des champs.
+        $email = FILTER_INPUT(INPUT_POST,"email",FILTER_VALIDATE_EMAIL);
+        $password = FILTER_INPUT(INPUT_POST,"password",FILTER_SANITIZE_STRING);
+
+        // Vérifications pour le mot de passe.
+        if(!$password){
+            virerDonnesFausses("password");
+            virerDonnesFausses("password2");
+            $erreur["password"] = "Veuillez rentrer un mot de passe valide.";
+        } 
+
+        // Vérifications pour l'email.
+        if (!$email) {
+            virerDonnesFausses("email");
+            $erreur["email"] = "Veuillez rentrer une adresse email valide.";
+        } 
+
+        // Si il n'y a aucune érreur execute le code ci-dessous.
+        if(count($erreur) == 0)
+        {
+            echo "Aucune erreur dans le formulaire.";
+        }
+    }

@@ -6,65 +6,81 @@
 */
 
   $btnValider = filter_input(INPUT_POST,"btnValider");         // Détecte si le boutton valider a été cliqué
+  $description = filter_input(INPUT_POST,"description",FILTER_SANITIZE_STRING);
   $msg = "";
   $afficherPopUp = false;
 
   if ($btnValider) 
   {
-    $countfiles = count($_FILES['photo']['name']);              // Nombres d'images recuperé par l'input files
-    $dossier = 'img/upload/';                                   // Chemin ou seront uplaod les images
-    $taille_maxi = 3000000;                                     // Tailles max en octet
-    $extensions = array('.png', '.gif', '.jpg', '.jpeg');       // Formats acceptés
-
-    // Boucle qui va se repeter autant de fois que le nombre d'image envoyer dans l'input
-    for($i=0;$i<$countfiles;$i++)
+    if ($description != "") 
     {
-      $filename = $_FILES['photo']['name'][$i];                 // Nom de l'image
-      $extension = strrchr($filename, '.');                     // Extension de l'image
-      $taille = filesize($_FILES['photo']['tmp_name'][$i]);     // Taille en octet de l'image
-      $fichier = basename($filename);                           // Nom du fichier
+      $countfiles = count($_FILES['photo']['name']);              // Nombres d'images recuperé par l'input files
+      $dossier = 'img/upload/';                                   // Chemin ou seront uplaod les images
+      $taille_maxi = 3000000;                                     // Tailles max en octet
+      $extensions = array('.png', '.gif', '.jpg', '.jpeg');       // Formats acceptés
 
-      // Vérifie si l'extension est bonne.
-      if(!in_array($extension, $extensions)) 
+      // Boucle qui va se repeter autant de fois que le nombre d'image envoyer dans l'input
+      for($i=0;$i<$countfiles;$i++)
       {
-          $erreur = "<p class='text-danger'>Le fichier $filename doit être de type png, gif, jpg, jpeg <br></p>";
+        $filename = $_FILES['photo']['name'][$i];                 // Nom de l'image
+        $extension = strrchr($filename, '.');                     // Extension de l'image
+        $taille = filesize($_FILES['photo']['tmp_name'][$i]);     // Taille en octet de l'image
+        $fichier = basename($filename);                           // Nom du fichier
+
+        // Vérifie si l'extension est bonne.
+        if(!in_array($extension, $extensions)) 
+        {
+            $erreur = "<p class='text-danger'>Le fichier $filename doit être de type png, gif, jpg, jpeg <br></p>";
+        }
+
+        // Vérifie si la taille de l'image n'est pas trop haute.
+        if($taille>$taille_maxi)
+        {
+            $erreur = "<p class='text-danger'>Le fichier $filename est trop gros. <br></p>";
+        }
+
+        // Passer a la suite si il n'y a aucune erreurs.
+        if(!isset($erreur))
+        {
+            //Remplacer tout les accents.
+            $fichier = strtr($fichier, 'ÀÁÂÃÄÅÇÈÉÊËÌÍÎÏÒÓÔÕÖÙÚÛÜÝàáâãäåçèéêëìíîïðòóôõöùúûüýÿ', 'AAAAAACEEEEIIIIOOOOOUUUUYaaaaaaceeeeiiiioooooouuuuyy');
+            $fichier = preg_replace('/([^.a-z0-9]+)/i', '-', $fichier);
+
+            // Uploads les fichier si la fonction renvoie TRUE.
+            if(move_uploaded_file($_FILES['photo']['tmp_name'][$i], $dossier . $fichier)) 
+            {
+              
+                $msg .= "<p class='text-success'>L'upload de l'image $filename à été effectué avec succès ! <br></p>";
+            }
+
+            // Affiche les erreurs si elle renvoie FALSE.
+            else 
+            {
+              
+                $msg .= "<p class='text-danger'>Echec de l'upload ! pour : $filename <br></p>";
+            }
+        }
+
+        // Afficher les erreurs si il y en a eu.
+        else
+        {
+            $msg .= $erreur;  
+            unset($erreur);
+        }
+
       }
-
-      // Vérifie si la taille de l'image n'est pas trop haute.
-      if($taille>$taille_maxi)
-      {
-          $erreur = "<p class='text-danger'>Le fichier $filename est trop gros. <br></p>";
+    }
+    else
+    {
+      $testFiles = $_FILES['photo']['name'];
+      if ($testFiles[0] != "") {
+        
+        echo "cpovide";
       }
-
-      // Passer a la suite si il n'y a aucune erreurs.
-      if(!isset($erreur))
-      {
-          //Remplacer tout les accents.
-          $fichier = strtr($fichier, 'ÀÁÂÃÄÅÇÈÉÊËÌÍÎÏÒÓÔÕÖÙÚÛÜÝàáâãäåçèéêëìíîïðòóôõöùúûüýÿ', 'AAAAAACEEEEIIIIOOOOOUUUUYaaaaaaceeeeiiiioooooouuuuyy');
-          $fichier = preg_replace('/([^.a-z0-9]+)/i', '-', $fichier);
-
-          // Uploads les fichier si la fonction renvoie TRUE.
-          if(move_uploaded_file($_FILES['photo']['tmp_name'][$i], $dossier . $fichier)) 
-          {
-            
-              $msg .= "<p class='text-success'>L'upload de l'image $filename à été effectué avec succès ! <br></p>";
-          }
-
-          // Affiche les erreurs si elle renvoie FALSE.
-          else 
-          {
-            
-              $msg .= "<p class='text-danger'>Echec de l'upload ! pour : $filename <br></p>";
-          }
+      else{
+        $msg .= "Vous devez envoyer une image. <br>";
       }
-
-      // Afficher les erreurs si il y en a eu.
-      else
-      {
-          $msg .= $erreur;  
-          unset($erreur);
-      }
-
+      $msg .= "La description ne doit pas être vide <br>";
     }
     $afficherPopUp = true;
   }
@@ -116,7 +132,7 @@
             Ajouter un poste
           </div>
           <div class="card-body">
-            <textarea name="" id="" cols="30" rows="10" class="form-control"></textarea>
+            <textarea name="description" id="" cols="30" rows="10" class="form-control"></textarea>
           </div>
           <div class="card-footer">
             <div class="input-group mb-2 mt-2">
