@@ -4,43 +4,72 @@
 *
 *
 */
+  require_once 'inc/functions.php';
 
-  $btnValider = filter_input(INPUT_POST,"btnValider");         // Détecte si le boutton valider a été cliqué
-  $description = filter_input(INPUT_POST,"description",FILTER_SANITIZE_STRING);
+  $btnValider = filter_input(INPUT_POST,"btnValider");                            // Détecte si le boutton valider a été cliqué.
+  $description = filter_input(INPUT_POST,"description",FILTER_SANITIZE_STRING);   // Récupère la valeur du textArea.
+  $afficherPopUp = false;                                                         // Cache la popup d'information.
+  $erreur = [];
   $msg = "";
-  $afficherPopUp = false;
 
+  // Lance les test a l'appuie du boutton.
   if ($btnValider) 
   {
-    if ($description != "") 
+    // Filtrage des champs.
+    $description = filter_input(INPUT_POST,"description",FILTER_SANITIZE_STRING);
+
+    // Vérifications pour le mot de passe.
+    if(!$description || $description == "")
+    {
+        $erreur["description"] = "<p class='text-danger'>Veuillez rentrer une description. <br></p>";
+        $msg .= $erreur["description"];
+    } 
+
+    // Vérifie si au moins une image a été envoyée au formulaire.
+    $testFiles = $_FILES['photo']['name'];
+    if ($testFiles[0] == "") 
+    {
+      $erreur["imageVide"] = "<p class='text-danger'>Vous devez envoyer au moins une image. <br></p>";
+      $msg .= $erreur["imageVide"];
+    }
+
+    // Si il n'y a aucune erreur, passe a la suite en executant le code ci-dessous.
+    if(count($erreur) == 0)
     {
       $countfiles = count($_FILES['photo']['name']);              // Nombres d'images recuperé par l'input files
       $dossier = 'img/upload/';                                   // Chemin ou seront uplaod les images
       $taille_maxi = 3000000;                                     // Tailles max en octet
       $extensions = array('.png', '.gif', '.jpg', '.jpeg');       // Formats acceptés
 
+      $idPost = ajouterPost($description);
       // Boucle qui va se repeter autant de fois que le nombre d'image envoyer dans l'input
       for($i=0;$i<$countfiles;$i++)
       {
         $filename = $_FILES['photo']['name'][$i];                 // Nom de l'image
         $extension = strrchr($filename, '.');                     // Extension de l'image
-        $taille = filesize($_FILES['photo']['tmp_name'][$i]);     // Taille en octet de l'image
-        $fichier = basename($filename);                           // Nom du fichier
+        $taille = filesize($_FILES['photo']['tmp_name'][$i]);     // Taille en octet de l'image 
+
+
+        $arr = explode(".", $filename, 2);
+        $nomFichierSansLeType = $arr[0]  . $idPost;               // nom de l'image sans le type
+        $fichier = $nomFichierSansLeType . $extension;            // Nom du fichier
 
         // Vérifie si l'extension est bonne.
         if(!in_array($extension, $extensions)) 
         {
-            $erreur = "<p class='text-danger'>Le fichier $filename doit être de type png, gif, jpg, jpeg <br></p>";
+            $erreurImg = "<p class='text-danger'>Le fichier $filename doit être de type png, gif, jpg, jpeg <br></p>";
+            $msg .= $erreurImg;
         }
 
         // Vérifie si la taille de l'image n'est pas trop haute.
         if($taille>$taille_maxi)
         {
-            $erreur = "<p class='text-danger'>Le fichier $filename est trop gros. <br></p>";
+            $erreurImg = "<p class='text-danger'>Le fichier $filename est trop gros. <br></p>";
+            $msg .= $erreurImg;
         }
 
         // Passer a la suite si il n'y a aucune erreurs.
-        if(!isset($erreur))
+        if(!isset($erreurImg))
         {
             //Remplacer tout les accents.
             $fichier = strtr($fichier, 'ÀÁÂÃÄÅÇÈÉÊËÌÍÎÏÒÓÔÕÖÙÚÛÜÝàáâãäåçèéêëìíîïðòóôõöùúûüýÿ', 'AAAAAACEEEEIIIIOOOOOUUUUYaaaaaaceeeeiiiioooooouuuuyy');
@@ -48,42 +77,32 @@
 
             // Uploads les fichier si la fonction renvoie TRUE.
             if(move_uploaded_file($_FILES['photo']['tmp_name'][$i], $dossier . $fichier)) 
-            {
-              
+            {          
                 $msg .= "<p class='text-success'>L'upload de l'image $filename à été effectué avec succès ! <br></p>";
+                ajouterMedia($nomFichierSansLeType,$extension,$idPost);
+                
+                
             }
 
             // Affiche les erreurs si elle renvoie FALSE.
             else 
-            {
-              
+            {      
                 $msg .= "<p class='text-danger'>Echec de l'upload ! pour : $filename <br></p>";
             }
         }
 
-        // Afficher les erreurs si il y en a eu.
+        // Supprime les erreurs d'upload si il y en a eu et passe a la prochaine image.
         else
         {
-            $msg .= $erreur;  
-            unset($erreur);
+            unset($erreurImg);
         }
+      }
+    }
 
-      }
-    }
-    else
-    {
-      $testFiles = $_FILES['photo']['name'];
-      if ($testFiles[0] != "") {
-        
-        echo "cpovide";
-      }
-      else{
-        $msg .= "Vous devez envoyer une image. <br>";
-      }
-      $msg .= "La description ne doit pas être vide <br>";
-    }
+    // Affiche un popup d'information a la fin des tests.
     $afficherPopUp = true;
   }
+
 ?>
 
 <!DOCTYPE html>
@@ -105,6 +124,7 @@
   </head>
 
   <body>
+
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-light" style="background-color: beige;">
       <div class="container">
@@ -149,7 +169,7 @@
       </div>   
     </div>
 
-    <!-- Popup -->
+    <!-- Popup d'information -->
     <div class="modal fade bd-example-modal-lg" id="popupInfos" tabindex="-1" role="dialog" aria-labelledby="popupInfos" aria-hidden="true">
       <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
@@ -175,9 +195,7 @@
     </div>
 
   </body>
-    <!-- Footer -->
-
-
+  
     <!-- Bootstrap core JavaScript -->
     <script src="vendor/jquery/jquery.min.js"></script>
     <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
@@ -219,6 +237,7 @@
       });
 
     </script>
+
     <?php if($afficherPopUp):?>
       <script> $('#popupInfos').modal('show');</script>
     <?php endif;?>
