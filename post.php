@@ -74,14 +74,15 @@
             //Remplacer tout les accents.
             $fichier = strtr($fichier, 'ÀÁÂÃÄÅÇÈÉÊËÌÍÎÏÒÓÔÕÖÙÚÛÜÝàáâãäåçèéêëìíîïðòóôõöùúûüýÿ', 'AAAAAACEEEEIIIIOOOOOUUUUYaaaaaaceeeeiiiioooooouuuuyy');
             $fichier = preg_replace('/([^.a-z0-9]+)/i', '-', $fichier);
-
             // Uploads les fichier si la fonction renvoie TRUE.
             if(move_uploaded_file($_FILES['photo']['tmp_name'][$i], $dossier . $fichier)) 
             {          
+
+
                 $msg .= "<p class='text-success'>L'upload de l'image $filename à été effectué avec succès ! <br></p>";
                 ajouterMedia($nomFichierSansLeType,$extension,$idPost);
-                
-                
+                resize_image(__DIR__."\\img\\upload\\".$nomFichierSansLeType.$extension);
+                           
             }
 
             // Affiche les erreurs si elle renvoie FALSE.
@@ -126,38 +127,24 @@
   <body>
 
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light" style="background-color: beige;">
-      <div class="container">
-        <div class="collapse navbar-collapse">
-          <div class="navbar-nav mr-auto">
-            <a class="navbar-brand" href="#">Bibolop</a>
-          </div>
-          <ul class="navbar-nav mt-2 mt-lg-0">
-            <li class="nav-item">
-              <a class="nav-link" href="index.php"><i class ="fas fa-home"></i> Accueil</a>
-            </li>
-            <li class="nav-item active">
-              <a class="nav-link" href="post.php"><i class="fas fa-plus"></i> Post</a>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </nav>
+    <?php
+      include "inc/navbar/navbarBase.php";
+    ?>   
 
     <!-- Formulaire -->
     <div class="container mt-5">
-      <div class="card">
+      <div class="card text-light" style="background-color: #fbfbfb">
         <form action="" method="post" enctype="multipart/form-data">
-          <div class="card-header">
-            Ajouter un poste
+          <div class="card-header" style="background-color: #FAA275">
+            <h4>Ajouter un post</h4>
           </div>
           <div class="card-body">
-            <textarea name="description" id="" cols="30" rows="10" class="form-control"></textarea>
+            <textarea name="description" id="textAreaImg" cols="30" rows="7" class="form-control"></textarea>
           </div>
-          <div class="card-footer">
+          <div class="card-footer" style="background-color: #f0f0f0">
             <div class="input-group mb-2 mt-2">
               <div class="input-group-prepend">
-                <input type="submit" class="btn btn-success" value="Envoyez" name="btnValider">
+                <input type="submit" class="btn btn-bouton1" value="Envoyez" name="btnValider">
               </div>
               <div class="custom-file">
                 <input type="file" name="photo[]" class="custom-file-input"  id="myInput" aria-describedby="inputGroupFileAddon03" accept="image/*" multiple>

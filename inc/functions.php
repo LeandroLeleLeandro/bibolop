@@ -1,5 +1,5 @@
 <?php
-  require_once 'connexionDb.php';
+  require_once 'db/connexionDb.php';
 
   $db = UserDbConnection();
 
@@ -40,4 +40,19 @@
     $insertmbr = $db->prepare("INSERT INTO media(idPost, nomFichierMedia, typeMedia) VALUES(?, ?, ?)");
     $insertmbr->execute(array($idPost, $nomMedia, $typeMedia));
   }
+
+  // Fonction servant a resize une image.
+  function resize_image($filename) 
+  {
+    $source = imagecreatefromjpeg($filename);
+    list($width, $height) = getimagesize($filename);
+
+    $newwidth = $width/5;
+    $newheight = $height/5;
+
+    $destination = imagecreatetruecolor($newwidth, $newheight);
+    imagecopyresampled($destination, $source, 0, 0, 0, 0, $newwidth, $newheight, $width, $height);
+
+    imagejpeg($destination, "output.jpg", 100);
+}
 

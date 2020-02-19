@@ -1,12 +1,42 @@
-textarea 
+textarea#textAreaImg
 {
     resize: none;  
+    background: #ffffff;
+    color: #002b7f;
+    font-size: 21pt;
 }
+.form-control:focus#textAreaImg {
+    border-color: #ff80ff;
+    box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.075) inset, 0px 0px 8px rgba(255, 100, 255, 0.5);
+}
+
 .custom-file-input~.custom-file-label::after {
     content: attr(data-label);
+    background-color: lightgrey;
 }
 body
 {
 padding-bottom: 10%;
 overflow-y: auto;
+background-color: #eaf3ff;
+}
+.custom-file-input{
+    border: 1px solid #ccc;  
+    display: inline-block;  
+    padding: 6px 12px;  
+    cursor: pointer;  
+    background-color: yellow;  
+}
+.btn-bouton1 
+{
+    color: #fff;
+    background-color: #570d0d;
+    border-color: #570d0d; /*set the color you want here*/
+}
+.btn-bouton1:hover, .btn-bouton1:focus, .btn-bouton1:active, .btn-bouton1.active, .open>.dropdown-toggle.btn-bouton1 
+{
+    color:#fff;
+    background-color: #570d0dde;
+    border-color: #570d0d; /*set the color you want here*/
+    
 }
