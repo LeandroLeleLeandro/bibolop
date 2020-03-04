@@ -42,6 +42,7 @@
       $extensions = array('.png', '.gif', '.jpg', '.jpeg');       // Formats acceptés
 
       $idPost = ajouterPost($description);
+      
       // Boucle qui va se repeter autant de fois que le nombre d'image envoyer dans l'input
       for($i=0;$i<$countfiles;$i++)
       {
@@ -52,6 +53,7 @@
 
         $arr = explode(".", $filename, 2);
         $nomFichierSansLeType = $arr[0]  . $idPost;               // nom de l'image sans le type
+        $nomFichierSansLeType = preg_replace('/\s+/', '', $nomFichierSansLeType);             // Enlever les espaces
         $fichier = $nomFichierSansLeType . $extension;            // Nom du fichier
 
         // Vérifie si l'extension est bonne.
@@ -77,12 +79,9 @@
             // Uploads les fichier si la fonction renvoie TRUE.
             if(move_uploaded_file($_FILES['photo']['tmp_name'][$i], $dossier . $fichier)) 
             {          
-
-
                 $msg .= "<p class='text-success'>L'upload de l'image $filename à été effectué avec succès ! <br></p>";
                 ajouterMedia($nomFichierSansLeType,$extension,$idPost);
-                resize_image(__DIR__."\\img\\upload\\".$nomFichierSansLeType.$extension);
-                           
+                $msg .= resizePics(250,__DIR__."\\img\\resized\\".$nomFichierSansLeType.$extension,__DIR__."\\img\\upload\\".$nomFichierSansLeType.$extension);                          
             }
 
             // Affiche les erreurs si elle renvoie FALSE.
