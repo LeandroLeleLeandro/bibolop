@@ -53,38 +53,84 @@ function ajouterMedia($nomMedia, $typeMedia, $idPost)
   $insertMedia->bindParam(":idPost",$idPost,PDO::PARAM_INT);
   $insertMedia->bindParam(":nomMedia",$nomMedia,PDO::PARAM_STR);
   $insertMedia->bindParam(":typeMedia",$typeMedia,PDO::PARAM_STR);
-  $insertMedia->execute();
-  
+  $insertMedia->execute();  
 }
 
-// Fonction servant a obtenir l'extension d'une image
-function getImgExtension($img)
+// Fonction supprimant un media
+function supprimerMedia($idMedia)
 {
-  $info = getimagesize($img);
-  $mime = $info['mime'];
+  global $db;
 
-  switch ($mime) {
-    case 'image/jpeg':
-      return "jpg";
+  $supprimerMedia = $db->prepare("DELETE FROM media WHERE idMedia = :idMedia");
+  $supprimerMedia->bindParam(":idMedia",$idMedia,PDO::PARAM_INT);
+
+  $supprimerMedia->execute();  
+}
+// fonction supprimant un post
+function supprimerPost($idPost)
+{
+  global $db;
+
+  $supprimerPost = $db->prepare("DELETE FROM post WHERE idPost = :idPost");
+  $supprimerPost->bindParam(":idPost",$idPost,PDO::PARAM_INT);
+
+  $supprimerPost->execute();  
+}
+
+// Verifie si l'extension est bonne
+function verifyExtension($img)
+{
+
+  $a = mime_content_type($img);
+  switch ($a) 
+  {
+    case 'video/mp4':
+      return True;
       break;
-
     case 'image/png':
-      return "png";
-      break;
-
+      return True;
+    break;
     case 'image/gif':
-      return "gif";
-      break;
-
+      return True;
+    break;
+    case 'image/jpg':
+      return True;
+    break;
     default:
-      return FALSE;
+    unlink($img);
+      return False;
+      break;
+  }
+
+}
+
+function isResizable($img)
+{
+ 
+  $a = mime_content_type($img);
+  switch ($a) 
+  {
+    case 'video/mp4':
+      return False;
+      break;
+    case 'image/png':
+      return True;
+    break;
+    case 'image/gif':
+      return False;
+    break;
+    case 'image/jpg':
+      return True;
+    break;
+    default:
+      return False;
+      break;
   }
 }
 
 // Fonction servant a resize une image.
-function resizePics($newWidth = 1000, $targetFile, $originalFile)
+function resizePics($newWidth = 200, $originalFile)
 {
-
   $info = getimagesize($originalFile);
   $mime = $info['mime'];
 
@@ -108,15 +154,13 @@ function resizePics($newWidth = 1000, $targetFile, $originalFile)
       break;
 
     default:
-      return "<p class='text-danger'>po nice : $targetFile <br></p>";
+      return "<p class='text-danger'>FICHIER INVALIDE : $originalFile <br></p>";
   }
 
   $img = $image_create_func($originalFile);
   list($width, $height) = getimagesize($originalFile);
   $newHeight = ($height / $width) * $newWidth;
   $tmp = imagecreatetruecolor($newWidth, $newHeight);
-
-  
 
   if ($new_image_ext == "gif" or $new_image_ext == "png") 
   {
@@ -125,27 +169,16 @@ function resizePics($newWidth = 1000, $targetFile, $originalFile)
     imagesavealpha($tmp, true);
   }
 
-  if ($new_image_ext == "gif") 
-  {
-    imagecopyresampled($tmp, $img, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
-  }
-
   imagecopyresampled($tmp, $img, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
 
-  if (file_exists($targetFile)) 
-  {
-    unlink($targetFile);
-  }
 
-  var_dump($originalFile);
-  var_dump($targetFile);
   $image_save_func($tmp,$originalFile);
 }
 
 function getAllPost()
 {
   global $db;
-  $requser = $db->query('SELECT idPost,commentaire,creationDate FROM post');
+  $requser = $db->query('SELECT idPost,commentaire,creationDate FROM post ORDER BY modificationDate desc');
   $postInfo = $requser->fetchAll();
   return $postInfo;
 }
@@ -184,58 +217,100 @@ function showPosts()
     $medias = getMediaByPost($post["idPost"]);
     $nbMedias = getNbMediaByPost($post["idPost"]);
 
-    $html .= "<div class='shadow card p-4'>";
-    $html .= "<div id='carousel".$post["idPost"]."' class='carousel slide'>";
-    $html .= "<ol class='carousel-indicators'>";
-
-    for ($i = 0; $i < $nbMedias; $i++) 
+    if ($nbMedias >= 2) 
     {
-      if ($i == 0) 
-      {
-        $html .= "<li data-target='#carouselExampleIndicators' data-slide-to='$i' class='active'></li>";
-      } 
-      else 
-      {
-        $html .= "<li data-target='#carouselExampleIndicators' data-slide-to='$i'></li>";
-      }
-    }
+      $html .= "<div class='shadow card p-4'>";
+      $html .= "<div data-interval='false' id='carousel".$post["idPost"]."' class='carousel slide'>";
+      $html .= "<ol class='carousel-indicators'>";
 
-    $html .= "</ol>";
-    $html .= "<div class='carousel-inner'>";
+      for ($i = 0; $i < $nbMedias; $i++) 
+      {
+        if ($i == 0) 
+        {
+          $html .= "<li data-target='#carouselExampleIndicators' data-slide-to='$i' class='active'></li>";
+        } 
+        else 
+        {
+          $html .= "<li data-target='#carouselExampleIndicators' data-slide-to='$i'></li>";
+        }
+      }
+
+      $html .= "</ol>";
+      $html .= "<div class='carousel-inner'>";
           
-    $tracteur = True;
+      $tracteur = True;
 
-    foreach ($medias as $m) 
+      foreach ($medias as $m) 
+      {
+        if ($tracteur) 
+        {
+          $html .= "<div class='carousel-item active'>";
+          $html .= "<img class='d-block w-100 img-responsive' src='img/upload/" . $m["nomFichierMedia"] . $m["typeMedia"] . "' alt='" . $m["nomFichierMedia"] . "'>";
+          $html .= "<hr></div>";
+          $tracteur = false;
+        } 
+        else 
+        {
+          $html .= "<div class='carousel-item'>";
+          $html .= "<img class='d-block w-100' src='img/upload/" . $m["nomFichierMedia"] . $m["typeMedia"] . "' alt='" . $m["nomFichierMedia"] . "'>";
+          $html .= "<hr></div>";
+        }
+      }
+
+      $html .= "</div>";
+      $html .= '
+      <a class="carousel-control-prev" href="#carousel'.$post["idPost"].'" role="button" data-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="sr-only">Previous</span>
+      </a>
+      <a class="carousel-control-next" href="#carousel'.$post["idPost"].'" role="button" data-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="sr-only">Next</span>
+      </a>';
+      $html .= "</div>";
+    }
+    else
     {
-      if ($tracteur) 
+      foreach ($medias as $m) 
       {
-        $html .= "<div class='carousel-item active'>";
-        $html .= "<img class='d-block w-100 img-responsive' src='img/resized/" . $m["nomFichierMedia"] . $m["typeMedia"] . "' alt='" . $m["nomFichierMedia"] . "'>";
-        $html .= "<hr></div>";
-        $tracteur = false;
-      } 
-      else 
-      {
-        $html .= "<div class='carousel-item'>";
-        $html .= "<img class='d-block w-100' src='img/resized/" . $m["nomFichierMedia"] . $m["typeMedia"] . "' alt='" . $m["nomFichierMedia"] . "'>";
-        $html .= "<hr></div>";
+        switch ($m["typeMedia"]) 
+        {
+          case '.png':
+            $html .= "<div class='shadow card p-4'>";
+            $html .= "<img class='d-block w-100' src='img/upload/" . $m["nomFichierMedia"] . $m["typeMedia"] . "' alt='" . $m["nomFichierMedia"] . "'>";
+            $html .= "<hr>";
+            break;
+          case '.jpg':
+            $html .= "<div class='shadow card p-4'>";
+            $html .= "<img class='d-block w-100' src='img/upload/" . $m["nomFichierMedia"] . $m["typeMedia"] . "' alt='" . $m["nomFichierMedia"] . "'>";
+            $html .= "<hr>";
+            break;
+          case '.gif':
+            $html .= "<div class='shadow card p-4'>";
+            $html .= "<img class='d-block w-100' src='img/upload/" . $m["nomFichierMedia"] . $m["typeMedia"] . "' alt='" . $m["nomFichierMedia"] . "'>";
+            $html .= "<hr>";
+            break;
+          case '.mp4':
+            $html .= "<div class='shadow card p-4'>";
+            $html .= "<video autoplay loop width='100%'>";
+            $html .= "<source src='img/upload/" . $m["nomFichierMedia"] . $m["typeMedia"] . "' alt='" . $m["nomFichierMedia"] . "' type='video/mp4'>";
+            $html .= "</video>";
+            $html .= "<hr>";
+              break;
+          default:
+            # code...
+            break;
+        }
+      
       }
     }
-
-    $html .= "</div>";
-    $html .= '
-    <a class="carousel-control-prev" href="#carousel'.$post["idPost"].'" role="button" data-slide="prev">
-      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-      <span class="sr-only">Previous</span>
-    </a>
-    <a class="carousel-control-next" href="#carousel'.$post["idPost"].'" role="button" data-slide="next">
-      <span class="carousel-control-next-icon" aria-hidden="true"></span>
-      <span class="sr-only">Next</span>
-    </a>';
-    $html .= "</div>";
+    
     $html .= "<div class='card-body'>";
     $html .= "<h5 class='card-title mt-0'>".$post["commentaire"]."</h5>";
     $html .= "<p class='card-text mt-0'>".changeDateFormat($post["creationDate"])."</p>";
+    $html .= '<hr>';
+    $html .= '<a href="deletePost.php?id='.$post["idPost"].'"><button type="button" class="btn btn-danger btn-lg float-right"><i class="fas fa-trash"></i></button></a>';
+    $html .= '<a href="deletePost.php?id='.$post["idPost"].'"><button type="button" class="btn btn-info btn-lg float-right mr-3"><i class="fas fa-edit"></i></button></a>';
     $html .= "</div></div>";
   }
   $html .= "</div>";

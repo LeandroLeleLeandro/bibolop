@@ -1,6 +1,6 @@
 <div class="container-fluid mb-5" style="background-color: #5C374C;">
 <nav class="container navbar navbar-expand-lg navbar-dark">
-    <div class="collapse navbar-collapse" id="navbarText">
+    <div class="navbar-collapse" id="navbarText">
     <ul class="navbar-nav mr-auto">
         <li class="nav-item active">
         <h3><a class="nav-link text-light" href=".\index.php">Bibolop</a></h3>

@@ -1,13 +1,12 @@
 <?php
-require_once 'inc/functions.php';
-
+  require_once 'inc/functions.php';
 ?>
 <!DOCTYPE html>
 <html lang="fr">
 
 <head>
   <meta charset="utf-8">
-  <title>Bibolop - Accueil</title>
+  <title>Bibolop - Accueeeeil</title>
 
   <!-- Bootstrap core CSS -->
   <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">

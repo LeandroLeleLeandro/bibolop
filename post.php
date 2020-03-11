@@ -29,7 +29,7 @@
     $testFiles = $_FILES['photo']['name'];
     if ($testFiles[0] == "") 
     {
-      $erreur["imageVide"] = "<p class='text-danger'>Vous devez envoyer au moins une image. <br></p>";
+      $erreur["imageVide"] = "<p class='text-danger'>Vous devez envoyer au moines une image. <br></p>";
       $msg .= $erreur["imageVide"];
     }
 
@@ -39,10 +39,11 @@
       $countfiles = count($_FILES['photo']['name']);              // Nombres d'images recuperé par l'input files
       $dossier = 'img/upload/';                                   // Chemin ou seront uplaod les images
       $taille_maxi = 3000000;                                     // Tailles max en octet
-      $extensions = array('.png', '.gif', '.jpg', '.jpeg');       // Formats acceptés
-
+      $extensions = array('.png', '.gif', '.jpg', '.jpeg','.mp4');// Formats acceptés
       $idPost = ajouterPost($description);
-      
+      echo "pas de pb";
+      echo $idPost;
+      echo $description;
       // Boucle qui va se repeter autant de fois que le nombre d'image envoyer dans l'input
       for($i=0;$i<$countfiles;$i++)
       {
@@ -78,16 +79,25 @@
             $fichier = preg_replace('/([^.a-z0-9]+)/i', '-', $fichier);
             // Uploads les fichier si la fonction renvoie TRUE.
             if(move_uploaded_file($_FILES['photo']['tmp_name'][$i], $dossier . $fichier)) 
-            {          
+            {         
                 $msg .= "<p class='text-success'>L'upload de l'image $filename à été effectué avec succès ! <br></p>";
                 ajouterMedia($nomFichierSansLeType,$extension,$idPost);
-                $msg .= resizePics(250,__DIR__."\\img\\resized\\".$nomFichierSansLeType.$extension,__DIR__."\\img\\upload\\".$nomFichierSansLeType.$extension);                          
+
+                if (isResizable(__DIR__."\\img\\upload\\".$nomFichierSansLeType.$extension) == true) 
+                {
+                  $msg .= resizePics(380,__DIR__."\\img\\upload\\".$nomFichierSansLeType.$extension);
+                }                 
             }
 
             // Affiche les erreurs si elle renvoie FALSE.
             else 
             {      
                 $msg .= "<p class='text-danger'>Echec de l'upload ! pour : $filename <br></p>";
+            }
+            if (verifyExtension("img/upload/".$nomFichierSansLeType.$extension) == false)
+            {
+              supprimerPost($idPost);
+              supprimerMedia($idPost);
             }
         }
 
@@ -96,6 +106,7 @@
         {
             unset($erreurImg);
         }
+
       }
     }
 
