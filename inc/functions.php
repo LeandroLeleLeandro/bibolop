@@ -98,9 +98,11 @@ function verifyExtension($img)
     case 'image/gif':
       return True;
     break;
-    case 'image/jpg':
+    case 'image/jpeg':
       return True;
     break;
+    case 'audio/mpeg':
+    return true;
     default:
     unlink($img);
       return False;
@@ -177,7 +179,6 @@ function resizePics($newWidth = 200, $originalFile)
 
   imagecopyresampled($tmp, $img, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
 
-
   $image_save_func($tmp,$originalFile);
 }
 
@@ -220,7 +221,7 @@ function getMediaByPost($idPost)
 function showPosts()
 {
   $postDatas = getAllPost();
-  $html = "<div class='card-columns  m-5'>";
+  $html = "<div class='card-columns m-5'>";
 
   foreach ($postDatas as $post) 
   {
@@ -306,7 +307,14 @@ function showPosts()
             $html .= "<source src='img/upload/" . $m["nomFichierMedia"] . $m["typeMedia"] . "' alt='" . $m["nomFichierMedia"] . "' type='video/mp4'>";
             $html .= "</video>";
             $html .= "<hr>";
-              break;
+            break;
+          case '.mp3':
+            $html .= "<div class='shadow card p-4'>";
+            $html .= "<audio controls width='100%'>";
+            $html .= "<source src='img/upload/" . $m["nomFichierMedia"] . $m["typeMedia"] . "' alt='" . $m["nomFichierMedia"] . "' type='audio/mpeg'>";
+            $html .= "</audio>";
+            $html .= "<hr>";
+            break;
           default:
             # code...
             break;

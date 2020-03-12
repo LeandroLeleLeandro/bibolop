@@ -36,22 +36,18 @@
     // Si il n'y a aucune erreur, passe a la suite en executant le code ci-dessous.
     if(count($erreur) == 0)
     {
+      $idPost = ajouterPost($description);
       $countfiles = count($_FILES['photo']['name']);              // Nombres d'images recuperé par l'input files
       $dossier = 'img/upload/';                                   // Chemin ou seront uplaod les images
       $taille_maxi = 3000000;                                     // Tailles max en octet
-      $extensions = array('.png', '.gif', '.jpg', '.jpeg','.mp4');// Formats acceptés
-      $idPost = ajouterPost($description);
-      echo "pas de pb";
-      echo $idPost;
-      echo $description;
+      $extensions = array('.png', '.gif', '.jpg', '.jpeg','.mp4','.mp3');// Formats acceptés
+
       // Boucle qui va se repeter autant de fois que le nombre d'image envoyer dans l'input
       for($i=0;$i<$countfiles;$i++)
       {
         $filename = $_FILES['photo']['name'][$i];                 // Nom de l'image
         $extension = strrchr($filename, '.');                     // Extension de l'image
         $taille = filesize($_FILES['photo']['tmp_name'][$i]);     // Taille en octet de l'image 
-
-
         $arr = explode(".", $filename, 2);
         $nomFichierSansLeType = $arr[0]  . $idPost;               // nom de l'image sans le type
         $nomFichierSansLeType = preg_replace('/\s+/', '', $nomFichierSansLeType);             // Enlever les espaces
@@ -62,6 +58,7 @@
         {
             $erreurImg = "<p class='text-danger'>Le fichier $filename doit être de type png, gif, jpg, jpeg <br></p>";
             $msg .= $erreurImg;
+            supprimerPost($idPost);
         }
 
         // Vérifie si la taille de l'image n'est pas trop haute.
@@ -69,6 +66,7 @@
         {
             $erreurImg = "<p class='text-danger'>Le fichier $filename est trop gros. <br></p>";
             $msg .= $erreurImg;
+            supprimerPost($idPost);
         }
 
         // Passer a la suite si il n'y a aucune erreurs.
@@ -77,8 +75,9 @@
             //Remplacer tout les accents.
             $fichier = strtr($fichier, 'ÀÁÂÃÄÅÇÈÉÊËÌÍÎÏÒÓÔÕÖÙÚÛÜÝàáâãäåçèéêëìíîïðòóôõöùúûüýÿ', 'AAAAAACEEEEIIIIOOOOOUUUUYaaaaaaceeeeiiiioooooouuuuyy');
             $fichier = preg_replace('/([^.a-z0-9]+)/i', '-', $fichier);
+
             // Uploads les fichier si la fonction renvoie TRUE.
-            if(move_uploaded_file($_FILES['photo']['tmp_name'][$i], $dossier . $fichier)) 
+            if(move_uploaded_file($_FILES['photo']['tmp_name'][$i], $dossier.$fichier)) 
             {         
                 $msg .= "<p class='text-success'>L'upload de l'image $filename à été effectué avec succès ! <br></p>";
                 ajouterMedia($nomFichierSansLeType,$extension,$idPost);
@@ -92,13 +91,19 @@
             // Affiche les erreurs si elle renvoie FALSE.
             else 
             {      
-                $msg .= "<p class='text-danger'>Echec de l'upload ! pour : $filename <br></p>";
+                supprimerPost($idPost);
+                $msg .= "<p class='text-danger'>Echec de l'upload ! pour : $filename <br> ce fichier ne peut être accepter.</p>";
             }
-            if (verifyExtension("img/upload/".$nomFichierSansLeType.$extension) == false)
+
+            if(file_exists("img/upload/".$nomFichierSansLeType.$extension))
             {
-              supprimerPost($idPost);
-              supprimerMedia($idPost);
+              if (verifyExtension("img/upload/".$nomFichierSansLeType.$extension) == false)
+              {
+                supprimerPost($idPost);
+                supprimerMedia($idPost);
+              }
             }
+            
         }
 
         // Supprime les erreurs d'upload si il y en a eu et passe a la prochaine image.
@@ -157,7 +162,7 @@
                 <input type="submit" class="btn btn-bouton1" value="Envoyez" name="btnValider">
               </div>
               <div class="custom-file">
-                <input type="file" name="photo[]" class="custom-file-input"  id="myInput" aria-describedby="inputGroupFileAddon03" accept="image/*" multiple>
+                <input type="file" name="photo[]" class="custom-file-input"  id="myInput" aria-describedby="inputGroupFileAddon03" accept="image/*,.mp3,.mp4" multiple>
                 <label class="custom-file-label" for="inputGroupFile03" data-label="Fichier">Choisez un fichier</label>
               </div>
             </div>
