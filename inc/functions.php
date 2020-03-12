@@ -77,6 +77,11 @@ function supprimerPost($idPost)
   $supprimerPost->execute();  
 }
 
+// Retourne la réel extension d'un média
+function getRealExtension($media)
+{
+  return mime_content_type($media);
+}
 // Verifie si l'extension est bonne
 function verifyExtension($img)
 {
@@ -104,6 +109,7 @@ function verifyExtension($img)
 
 }
 
+// Vérifie si le media envoyé est resisable ou non.
 function isResizable($img)
 {
  
@@ -175,6 +181,7 @@ function resizePics($newWidth = 200, $originalFile)
   $image_save_func($tmp,$originalFile);
 }
 
+// Retourne tout les posts dans la bdd
 function getAllPost()
 {
   global $db;
@@ -183,6 +190,7 @@ function getAllPost()
   return $postInfo;
 }
 
+// Retourne le nombre de medias associer au post envoyer
 function getNbMediaByPost($idPost)
 {
   global $db;
@@ -195,6 +203,7 @@ function getNbMediaByPost($idPost)
   return $dataUser[0];
 }
 
+// Retourne tout les medias associer au post envoyer
 function getMediaByPost($idPost)
 {
   global $db;
@@ -207,6 +216,7 @@ function getMediaByPost($idPost)
   return $medias;
 }
 
+// Affichage html des posts
 function showPosts()
 {
   $postDatas = getAllPost();
